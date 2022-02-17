@@ -8,6 +8,9 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+option(BUILD_ECOM_SHARED "Build sbgECom shared" OFF)
+option(BUILD_EXAMPLES "Build examples" OFF)
+
 # Use a sbgCommonLin as a static library
 add_definitions(-DSBG_COMMON_STATIC_USE -D_CRT_SECURE_NO_WARNINGS)
 
@@ -22,7 +25,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/../bin/)
 
 file(GLOB_RECURSE SRC ${PROJECT_SOURCE_DIR}/../src/*.c)
 file(GLOB_RECURSE COMMON_SRC ${PROJECT_SOURCE_DIR}/../common/*.c)
-
+message(STATUS "${SRC}")
+message(STATUS "${COMMON_SRC}")
 # Exclude platform specific files
 if (NOT MSVC)
 	list(REMOVE_ITEM COMMON_SRC "${PROJECT_SOURCE_DIR}/../common/interfaces/sbgInterfaceSerialWin.c")
@@ -30,30 +34,36 @@ else ()
 	list(REMOVE_ITEM COMMON_SRC "${PROJECT_SOURCE_DIR}/../common/interfaces/sbgInterfaceSerialUnix.c")
 endif()
 
-add_library(sbgECom STATIC ${SRC} ${COMMON_SRC})
+if (BUILD_ECOM_SHARED)
+	add_library(sbgECom SHARED ${SRC} ${COMMON_SRC})
+else ()
+	add_library(sbgECom STATIC ${SRC} ${COMMON_SRC})
+endif()
 
 if (MSVC)
 	target_link_libraries(sbgECom Ws2_32)
 	#target_compile_definitions(sbgECom PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
-# Add all examples
-add_executable(airDataInput "${PROJECT_SOURCE_DIR}/../examples/airDataInput/src/airDataInput.c")
-target_link_libraries(airDataInput sbgECom)
-add_dependencies(airDataInput sbgECom)
+if (BUILD_EXAMPLES)
+	# Add all examples
+	add_executable(airDataInput "${PROJECT_SOURCE_DIR}/../examples/airDataInput/src/airDataInput.c")
+	target_link_libraries(airDataInput sbgECom)
+	add_dependencies(airDataInput sbgECom)
 
-add_executable(ellipseMinimal "${PROJECT_SOURCE_DIR}/../examples/ellipseMinimal/src/ellipseMinimal.c")
-target_link_libraries(ellipseMinimal sbgECom)
-add_dependencies(ellipseMinimal sbgECom)
+	add_executable(ellipseMinimal "${PROJECT_SOURCE_DIR}/../examples/ellipseMinimal/src/ellipseMinimal.c")
+	target_link_libraries(ellipseMinimal sbgECom)
+	add_dependencies(ellipseMinimal sbgECom)
 
-add_executable(ellipseOnboardMagCalib "${PROJECT_SOURCE_DIR}/../examples/ellipseOnboardMagCalib/src/ellipseOnboardMagCalib.c")
-target_link_libraries(ellipseOnboardMagCalib sbgECom)
-add_dependencies(ellipseOnboardMagCalib sbgECom)
+	add_executable(ellipseOnboardMagCalib "${PROJECT_SOURCE_DIR}/../examples/ellipseOnboardMagCalib/src/ellipseOnboardMagCalib.c")
+	target_link_libraries(ellipseOnboardMagCalib sbgECom)
+	add_dependencies(ellipseOnboardMagCalib sbgECom)
 
-add_executable(hpInsMinimal "${PROJECT_SOURCE_DIR}/../examples/hpInsMinimal/src/hpInsMinimal.c")
-target_link_libraries(hpInsMinimal sbgECom)
-add_dependencies(hpInsMinimal sbgECom)
+	add_executable(hpInsMinimal "${PROJECT_SOURCE_DIR}/../examples/hpInsMinimal/src/hpInsMinimal.c")
+	target_link_libraries(hpInsMinimal sbgECom)
+	add_dependencies(hpInsMinimal sbgECom)
 
-add_executable(pulseMinimal "${PROJECT_SOURCE_DIR}/../examples/pulseMinimal/src/pulseMinimal.c")
-target_link_libraries(pulseMinimal sbgECom)
-add_dependencies(pulseMinimal sbgECom)
+	add_executable(pulseMinimal "${PROJECT_SOURCE_DIR}/../examples/pulseMinimal/src/pulseMinimal.c")
+	target_link_libraries(pulseMinimal sbgECom)
+	add_dependencies(pulseMinimal sbgECom)
+endif()
